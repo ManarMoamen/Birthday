@@ -1,1 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy Birthday!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('https://i.imgur.com/P7XUBCQ.jpeg');
+      background-size: cover;
+      background-position: center;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
 
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1.5rem;
+      justify-items: center;
+    }
+
+    .envelope {
+      position: relative;
+      width: 150px;
+      height: 100px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #d81b60;
+      transition: transform 0.2s ease;
+    }
+
+    .envelope.locked {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 90%;
+      max-width: 400px;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+      z-index: 999;
+      display: none;
+      text-align: center;
+    }
+
+    .popup h2 {
+      color: #d81b60;
+      margin-bottom: 1rem;
+    }
+
+    .popup p {
+      color: #333;
+      font-size: 1.1rem;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 998;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container" id="envelopes-container"></div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="popup" id="popup">
+    <h2>Enjoy your day!</h2>
+    <p id="popup-message"></p>
+  </div>
+
+  <script>
+    const messages = [
+      "Hey, star of the day! Your 27th birthday is the beginning of a year full of accomplishments and joy!",
+      "Good morning, on this special day I wish you a happy day filled with laughter and happiness and I wish you all the best in achieving your goals",
+      "صباحك طموح، يا من أؤمن بك دائمًا.. كل خطوة تطوّر نفسك فيها، هي خطوة نحو مستقبل أجمل تستحقه",
+      "اقرأ، تعلّم، وكن دائمًا ذلك اللامع الذي لا يكتفي بما يعرف…I'm proud of you",
+      "اكتب حلمك، احفظه في قلبك، واسعَ له كل يوم حتى",
+      "وقتك غالٍ، مثلك تمامًا… استثمره فيما يضيف لقيمتك، لا لما يُرهقك بلا جدوى",
+      "احرص على جلسة هادئة مع نفسك… قيّم أسبوعك بلُطف، وابتسم لكل شيء تعلمته. أنا معك دائمًا، فخورة بك. *حابة اقولك وحشتني",
+      "النهاردة حابة اقولك انه *منذ أول حديث دار بيننا عرفت أنني لن أنجو منك أبداً♥️*",
+      "شايفاك دايماً بتبذل مجهود وتحاول، واثقة أنك هتوصل، لأنه فيك من العزم ما يكفي ليضيء طريقك",
+      "عارفة ان الطريق مش هيكون سهل دايماً.. بس حبيت افكرك انك قادر تعدي أي صعب .. و انك مش لوحدك.♥️",
+      "كل فكرة او ملاحظة بتكتبها هي حجر أساس لحياة أقوى. keep going، أنت بتبني في حاجة عظيمة وانا واثقة فيك",
+      "لو في أي وقت حسيت انك تعبت.. افتكر دايماً ان فيه قلب مؤمن بيك وبيدعيلك طول الوقت♥️",
+      "لا يوجد يوم عادي حين تكون فيه، فأنت استثنائي حتى في أبسط لحظاتك.💫",
+      "You are stronger than you think and more loved than you know. Keep going — you're doing amazing",
+      "You don’t have to be perfect, you just have to keep moving. Progress is enough.🌱",
+      "لو مش غلطانة فالنهاردة 30/6.. نفس يوم من 3 شهور كان 30/3 أتقابلنا في حديقة أم الإمارات.. كان وقت حلو بجد بس مش احلي منك.. وفاكرة تاني يوم اتكلمنا الصبح وكانت أول مرة اسمع منك كلمة وحشتيني",
+      "New day, new strength, new chances. Make it count!",
+      "عارفة أن كل يوم فيه تحديات، بس فيه أنت. و دا كافي يخلي كل شي ممكن.💛",
+      "You’ve got this — and I’ve got you",
+      "لما بفتكر أول مرة فتحو معايا الموضوع بحس اني هبلة.. كنت هضيع مني أحلي فرصة.. فرصة دلوقتي بقي يومي صعب يعدي من غيرها💖",
+      "كل يوم بتحسسني إنّي محظوظة بيك... و دا بيأكدلي انك أجمل شخص في الدنيا كلها - شكرًا لأنك موجود💗",
+      "خذ نفس… وابدأ على هدوء. مفيش حاجة صعبة على شخص طَموح ومميز زيك.💛",
+      "أحيانًا الوقت اللي فاكر انه تأخير… يكون لحظة إعادة ترتيب داخلي. علشان كدا بقولك دايماً متكنش مستعجل انك عايز تعمل كل حاجة، خد وقتك أنت عايز تبني شي متماسك",
+      "مفيش حاجة تفرحني أكتر من إنك تكون بخير دايماً.. وكفاية وجودك وصوتك بس في اليوم♥️",
+      "اليوم مش اختبار لنجاحك، هو مساحة تتنفّس فيها وتتعلم، حتى لو حسيت إن مفيش حاجة أنجزتها. في حاجة جواك بتتشكّل، متستعجلش",
+      "هناك أناس أقوياء، ليس لأنهم لم يتعبوا، بل لأنهم لم يستسلموا... وتأكد أنك واحدٌ منهم.💖",
+      "الراحة ليست كسلًا، والبطء ليس فشلًا… أحيانًا النمو يحدث في أهدأ لحظاتك",
+      "ما تراه بسيطًا في نفسك، قد يكون بالنسبة لغيرك دليل قوّة لا تُوصف",
+      "لا شئ يشبه إحساسي حين أسمع صوتك... كأنّ العالم يسكن، وكأنّي أعود إلى وطني. *كلام حلو اهو علشان متقولش بخيلة*😊❤",
+      "14/7-أربعةُ أشهرٍ من وجودك… كانت كأربعةِ فصولٍ، امتلأت دفئًا لا يُشبه أحدًا.💖",
+      "لست فقط جميلًا… بل مريح، كأنّك فكرة هادئة وسط يومٍ صاخب.♥️",
+      "كل يوم معاك هو أجمل يوم … مش علشان الحياة أسهل، بس علشان انت فيها.♥️"
+    ];
+
+    const container = document.getElementById('envelopes-container');
+    const today = new Date();
+    const start = new Date(2025, 5, 15, 0, 0); // 15 June 2025, 00:00
+    const todayIndex = Math.floor((today - start) / (1000 * 60 * 60 * 24)); // Calculate days since start
+
+    // إنشاء الظروف
+    messages.forEach((msg, index) => {
+      const envelope = document.createElement('div');
+      envelope.className = 'envelope';
+      envelope.innerText = `اليوم ${index + 1}`;
+
+      if (index > todayIndex) {
+        envelope.classList.add('locked');
+      } else {
+        envelope.addEventListener('click', () => {
+          document.getElementById('popup-message').innerText = msg;
+          document.getElementById('popup').style.display = 'block';
+          document.getElementById('overlay').style.display = 'block';
+        });
+      }
+
+      container.appendChild(envelope);
+    });
+
+    // إغلاق النافذة
+    document.getElementById('overlay').addEventListener('click', () => {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+    });
+  </script>
+</body>
+</html>
